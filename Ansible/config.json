@@ -1,0 +1,7 @@
+{
+  "credHelpers": {
+    "container-registry.cloud.yandex.net": "yc",
+    "cr.cloud.yandex.net": "yc",
+    "cr.yandex": "yc"
+  }
+}

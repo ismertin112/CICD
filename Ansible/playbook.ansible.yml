@@ -1,0 +1,81 @@
+- name: Сборка докер контейнера с nginx
+  hosts: all
+  become: yes
+  tasks:
+    - name: Обновление пакетов
+      ansible.builtin.apt:
+        update_cache: yes
+    - name: Установка docker
+      ansible.builtin.apt:
+        name: docker.io
+        state: present
+    - name: Запуск сервиса docker
+      ansible.builtin.service:
+        name: docker
+        state: started
+        enabled: yes
+    - name: Установка curl
+      ansible.builtin.apt:
+        name: curl
+        state: present
+    - name: Установка jq
+      ansible.builtin.apt:
+        name: jq
+        state: present
+    - name: Создание каталога docker
+      ansible.builtin.file:
+        path: /home/ubuntu/.docker
+        state: directory
+    - name: Передача путей до рееста
+      ansible.builtin.copy:
+        src: ./config.json
+        dest: /home/ubuntu/.docker/config.json
+    - name: Получение IAM токена
+      ansible.builtin.shell: |
+        curl --header "Metadata-Flavor: Google" "http://169.254.169.254/computeMetadata/v1/instance/service-accounts/default/token" | jq -r '.access_token'
+      register: token
+    - name: Создание переменной с IAM токеном
+      ansible.builtin.set_fact:
+        iam_token: "{{ token.stdout }}"
+    - name: Проверка IAM токена
+      debug:
+        var: iam_token
+    - name: Авторизация в Container Registry
+      ansible.builtin.shell: |
+        echo "{{ iam_token }}" | sudo docker login --username iam --password-stdin cr.yandex
+      register: docker_login
+      ignore_errors: yes
+
+    - name: Проверка авторизации
+      debug:
+        var: docker_login
+
+    - name: Проверка результата авторизации
+      fail:
+        msg: "Авторизация не удалась: {{ docker_login.stderr }}"
+      when: docker_login.rc != 0
+    - name: Скачивание образа
+      ansible.builtin.command:
+        cmd: sudo docker pull cr.yandex/crpnt6bt1u5thvquj5mi/nginx:test
+    - name: Cборка контейнера
+      ansible.builtin.docker_container:
+        name: nginx
+        image: cr.yandex/crpnt6bt1u5thvquj5mi/nginx:test
+        state: started
+        ports:
+          - "80:80"
+    - name: Проверка доступности порта
+      ansible.builtin.wait_for:
+        host: localhost
+        port: 80
+        delay: 5
+        timeout: 60
+        state: started
+    - name: Проверка доступности сайта
+      ansible.builtin.uri:
+        url: http://localhost
+        return_content: yes
+      register: result
+    - name: Проверка ответа сайта
+      debug:
+        var: result.content

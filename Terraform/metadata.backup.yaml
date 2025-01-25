@@ -1,0 +1,8 @@
+#cloud-init
+users:
+  - name: kita
+    groups: sudo
+    shell: /bin/bash
+    sudo: ["ALL=(ALL) NOPASSWD:ALL"]
+    ssh-authorized-keys:
+      - ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIPNQbwrzNw6qlH7nXpN1xcwOeB7DDsA2aWev3w1AjCa4 kita@Home-PC
