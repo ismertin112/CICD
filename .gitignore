@@ -1,15 +1,16 @@
 # Terraform state files
-*.tfstate
-*.tfstate.*
+./Terraform/*.tfstate
+./Terraform/*.tfstate.*
 
 # Terraform crash logs
-crash.log
+./Terraform/crash.log
 
 # Terraform variable overrides
-*.tfvars
+./Terraform/*.tfvars
 
 # Terraform plan files
-*.tfplan
+./Terraform/*.tfplan
 
 # .terraform directory
-.Terraform/
+./Terraform/.terraform/
+
