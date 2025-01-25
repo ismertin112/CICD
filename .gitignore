@@ -12,5 +12,5 @@
 ./Terraform/*.tfplan
 
 # .terraform directory
-./Terraform/.terraform/
+./Terraform/.terraform/*
 
